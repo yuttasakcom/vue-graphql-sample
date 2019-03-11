@@ -1,18 +1,59 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+  <div>
+    <h1>Home Page</h1>
+    <p>Create User</p>
+    <form @submit.prevent="onSubmit">
+      <label for="name">name &nbsp;</label>
+      <input type="text" v-model="name">
+      <button type="sumbmit">submit</button>
+    </form>
+
+    <p>User list</p>
+    <ul>
+      <li v-for="user in users" :key="user.id">{{ user.id }} {{ user.name }}</li>
+    </ul>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
-
+import { gql } from "apollo-boost";
 export default {
-  name: "home",
-  components: {
-    HelloWorld
+  data: () => ({
+    name: ""
+  }),
+  methods: {
+    async onSubmit() {
+      if (this.name === "") return;
+
+      const result = await this.$apollo.mutate({
+        // Query
+        mutation: gql`
+          mutation($data: UserCreateInput!) {
+            createUser(data: $data) {
+              id
+              name
+            }
+          }
+        `,
+        // Parameters
+        variables: {
+          data: { name: this.name }
+        }
+      });
+
+      this.name = "";
+      console.log(result);
+    }
+  },
+  apollo: {
+    users: gql`
+      query {
+        users {
+          id
+          name
+        }
+      }
+    `
   }
 };
 </script>
